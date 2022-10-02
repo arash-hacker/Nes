@@ -28,29 +28,41 @@ module.exports.CPUMemory = class CPUMemory {
     }
 
     read(address) {
-        // console.log(address.x(), "<<<|")
         switch (true) {
             case uint16(address) < 0x2000:
                 return this.console.RAM[address % 0x0800]
             case uint16(address) < 0x4000:
+                console.log("::", address)
+
                 // return this.console.PPU.readRegister(0x2000 + address % 8)
                 break
             case uint16(address) == 0x4014:
+                console.log("::", address)
+
                 // return this.console.PPU.readRegister(address)
                 break
             case uint16(address) == 0x4015:
+                console.log("::", address)
+
                 // return this.console.APU.readRegister(address)
                 break
             case uint16(address) == 0x4016:
+                console.log("::", address)
+
                 // return this.console.Controller1.read()
                 break
             case uint16(address) == 0x4017:
+
+                console.log("::", address)
+
                 // return this.console.Controller2.read()
                 break
             case uint16(address) < 0x6000:
                 // TODO: I/O registers
                 break
             case uint16(address) >= 0x6000:
+                console.log("::", address)
+
                 // console.log("....", this.console.Mapper)
                 return this.console.Mapper.read(address)
             default:

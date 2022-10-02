@@ -1,6 +1,8 @@
 const { Console } = require("./console");
 
 let c = new Console()
-while (1) {
+let i = 0;
+while (i < 350) {
     c.step()
+    i++
 }

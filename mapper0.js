@@ -18,13 +18,17 @@ module.exports.Mapper0 = class Mapper0 {
             case address < 0x2000:
                 return byte(this.cart.chr[address])
             case address >= 0xC000:
+
                 index = this.prgBank2 * 0x4000 + int(address - 0xC000)
                 return byte(this.cart.prg[index])
             case address >= 0x8000:
+
                 index = this.prgBank1 * 0x4000 + int(address - 0x8000)
                 return byte(this.cart.prg[index])
             case address >= 0x6000:
+
                 index = int(address) - 0x6000
+                fmt.Println("!!!", index, m.SRAM[index])
                 return byte(this.cart.sram[index])
             default:
                 console.error("unhandled mapper2 read at address: 0x%04X" + address)

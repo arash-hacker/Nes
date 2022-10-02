@@ -400,46 +400,46 @@ module.exports.CPU = class CPU {
 
         const opcode = this.Memory.read(this.PC)
         const mode = instructionModes[opcode]
-
+        console.log("OOO", this.PC, opcode, mode)
         let address = uint16(0)
         let pageCrossed = false
         switch (mode) {
             case this.modeAbsolute:
-                address = this.read16(this.PC + 1)
+                address = uint16(this.read16(this.PC + 1))
                 break
             case this.modeAbsoluteX:
-                address = this.read16(this.PC + 1) + uint16(this.X)
+                address = uint16(this.read16(this.PC + 1) + uint16(this.X))
                 pageCrossed = this.pagesDiffer(address - uint16(this.X), address)
                 break
             case this.modeAbsoluteY:
-                address = this.read16(this.PC + 1) + uint16(this.Y)
+                address = uint16(this.read16(this.PC + 1) + uint16(this.Y))
                 pageCrossed = this.pagesDiffer(address - uint16(this.Y), address)
                 break
             case this.modeAccumulator:
-                address = 0
+                address = uint16(0)
                 break
             case this.modeImmediate:
-                address = this.PC + 1
+                address = uint16(this.PC + 1)
                 break
             case this.modeImplied:
-                address = 0
+                address = uint16(0)
                 break
             case this.modeIndexedIndirect:
-                address = this.read16bug(uint16(this.Memory.read(this.PC + 1) + this.X))
+                address = uint16(this.read16bug(uint16(this.Memory.read(this.PC + 1) + this.X)))
                 break
             case this.modeIndirect:
-                address = this.read16bug(this.read16(this.PC + 1))
+                address = uint16(this.read16bug(this.read16(this.PC + 1)))
                 break
             case this.modeIndirectIndexed:
-                address = this.read16bug(uint16(this.Memory.read(this.PC + 1))) + uint16(this.Y)
+                address = uint16(this.read16bug(uint16(this.Memory.read(this.PC + 1))) + uint16(this.Y))
                 pageCrossed = this.pagesDiffer(address - uint16(this.Y), address)
                 break
             case this.modeRelative:
                 const offset = uint16(this.Memory.read(this.PC + 1))
                 if (offset < 0x80) {
-                    address = this.PC + 2 + offset
+                    address = uint16(this.PC + 2 + offset)
                 } else {
-                    address = this.PC + 2 + offset - 0x100
+                    address = uint16(this.PC + 2 + offset - 0x100)
                 }
                 break
             case this.modeZeroPage:
@@ -452,7 +452,7 @@ module.exports.CPU = class CPU {
                 address = uint16(this.Memory.read(this.PC + 1) + this.Y) & 0xff
                 break
         }
-        console.log("<<<", this.PC.x(), mode.x(), opcode.x(), address.x())
+        console.log("111", this.PC, mode, opcode, address)
 
         this.PC += uint16(instructionSizes[opcode])
         this.Cycles += uint64(instructionCycles[opcode])
@@ -461,8 +461,11 @@ module.exports.CPU = class CPU {
         }
         const info = new module.exports.StepInfo(address, this.PC, mode)
 
-        console.log(">>>", this.PC.x(), info, instructionNames[opcode], this.table[opcode])
+        console.log("222", this.PC, "&{", info.address, info.pc, info.mode, "}", instructionNames[opcode])
+        console.log("333", this.PC, this.SP, this.A, this.X, this.Y, this.C, this.Z, this.I, this.D, this.B, this.U, this.V, this.N)
         this.table[opcode](info)
+        console.log("444", this.PC, this.SP, this.A, this.X, this.Y, this.C, this.Z, this.I, this.D, this.B, this.U, this.V, this.N)
+        console.log("555", this.PC, "&{", info.address, info.pc, info.mode, "}", instructionNames[opcode])
 
         return int(this.Cycles - cycles)
     }
@@ -700,7 +703,8 @@ module.exports.CPU = class CPU {
 
     // LDA - Load Accumulator
     lda(info) {
-        this.A = this.Memory.read(info.address)
+        this.A = byte(this.Memory.read(info.address))
+        console.log("A:", this.A)
         this.setZN(this.A)
     }
 

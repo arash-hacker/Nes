@@ -2,8 +2,8 @@ var fs = require('fs');
 var path = require('path');
 const { Mapper0 } = require('./mapper0');
 module.exports.Cart = class Cart {
-    constructor(path) {
-        const rom = fs.readFileSync(path.join(__dirname, path || "./rom/dk.nes"));
+    constructor(pth) {
+        const rom = fs.readFileSync(path.join(__dirname, pth || "./rom/dk.nes"));
         const nesHeader = (rom[0] << 24 + rom[1] << 16 + rom[2] << 8 + rom[3]) & 0xffffffff;
         if (!nesHeader == 0x1a53454e) {
             throw Error("unmatched nes header")
@@ -41,9 +41,8 @@ module.exports.Cart = class Cart {
         if (this.chrCount == 0) {
             this.chr = new Array(8129).fill(0x00)
         }
-        return rom
     }
-    mapper() {
+    createMapper() {
         switch (this.mapper) {
             case 0:
                 return new Mapper0(this)

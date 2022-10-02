@@ -4,16 +4,14 @@ const { CPUFrequency, CPU } = require("./cpu");
 module.exports.Console = class Console {
     constructor() {
         this.Cart = new Cart()
+        this.Mapper = this.Cart.createMapper()
         this.CPU = new CPU(this);
         this.PPU = null;
         this.APU = null;
         this.Cartridge = null;
         this.Controller1 = null
         this.Controller2 = null;
-        this.Mapper = null;// TODO other Mapper impl
         this.RAM = new Array(2048).fill(0x00)
-
-        this.Mapper = this.Cart.mapper()
     }
     reset() {
         this.CPU.reset()

@@ -10,10 +10,11 @@ module.exports.Mapper0 = class Mapper0 {
     }
     step() {
     }
-    read(address) {
-        const address = uint16(address)
+    read(adr) {
+        // console.log(adr.x(), "<00+")
+        const address = uint16(adr)
         let index = 0;
-        switch (address) {
+        switch (true) {
             case address < 0x2000:
                 return byte(this.cart.chr[address])
             case address >= 0xC000:
@@ -31,17 +32,21 @@ module.exports.Mapper0 = class Mapper0 {
         return byte(0)
     }
 
-    write(address, value) {
-        const value = byte(value)
-        const address = uint16(address)
-        switch (address) {
+    write(adr, val) {
+        console.log(adr.x(), "<00-")
+        const value = byte(val)
+        const address = uint16(adr)
+        switch (true) {
             case address < 0x2000:
                 this.cart.chr[address] = value
+                break
             case address >= 0x8000:
                 this.prgBank1 = int(value) % this.prgBanks
+                break
             case address >= 0x6000:
                 const index = int(address) - 0x6000
                 this.cart.sram[index] = value
+                break
             default:
                 console.error("unhandled mapper2 write at address: 0x%04X" + address)
         }

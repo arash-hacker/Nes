@@ -1,30 +1,13 @@
 var fs = require('fs');
 var path = require('path');
 const { CPUMemory } = require('./mamory');
-const { byte, int } = require('./utils');
-var rom = fs.readFileSync(path.join(__dirname, "./dk.nes"));
+const { byte, int, uint16, uint64 } = require('./utils');
 Number.prototype.x = function () {
     return this.toString(16).padStart(4, '0')
 }
 module.exports.CPUFrequency = 1789773
 
-module.exports.interruptNone = 1
-module.exports.interruptNMI = 2
-module.exports.interruptIRQ = 3
 
-module.exports.modeAbsolute = 1
-module.exports.modeAbsoluteX = 2
-module.exports.modeAbsoluteY = 3
-module.exports.modeAccumulator = 4
-module.exports.modeImmediate = 5
-module.exports.modeImplied = 6
-module.exports.modeIndexedIndirect = 7
-module.exports.modeIndirect = 8
-module.exports.modeIndirectIndexed = 9
-module.exports.modeRelative = 10
-module.exports.modeZeroPage = 11
-module.exports.modeZeroPageX = 12
-module.exports.modeZeroPageY = 13
 
 module.exports.StepInfo = class StepInfo {
     constructor(address, pc, mode) {
@@ -153,6 +136,25 @@ var instructionNames = [
 
 module.exports.CPU = class CPU {
     constructor(console) {
+
+        this.interruptNone = 1
+        this.interruptNMI = 2
+        this.interruptIRQ = 3
+
+        this.modeAbsolute = 1
+        this.modeAbsoluteX = 2
+        this.modeAbsoluteY = 3
+        this.modeAccumulator = 4
+        this.modeImmediate = 5
+        this.modeImplied = 6
+        this.modeIndexedIndirect = 7
+        this.modeIndirect = 8
+        this.modeIndirectIndexed = 9
+        this.modeRelative = 10
+        this.modeZeroPage = 11
+        this.modeZeroPageX = 12
+        this.modeZeroPageY = 13
+
         this.Memory = new CPUMemory(console);         // memory interface
         this.Cycles = uint64(0x00) // number of cycles
         this.PC = uint16(0x00) // program counter
@@ -170,49 +172,49 @@ module.exports.CPU = class CPU {
         this.N = byte(0x00)   // negative flag
         this.interrupt = byte(0x00)   // interrupt type to perform
         this.stall = int(0x00)    // number of cycles to stall
-        this.table[256];
+        this.table = [];
         this.createTable()
         this.reset()
         return this
     }
     createTable() {
         this.table = [
-            this.brk, this.ora, this.kil, this.slo, this.nop, this.ora, this.asl, this.slo,
-            this.php, this.ora, this.asl, this.anc, this.nop, this.ora, this.asl, this.slo,
-            this.bpl, this.ora, this.kil, this.slo, this.nop, this.ora, this.asl, this.slo,
-            this.clc, this.ora, this.nop, this.slo, this.nop, this.ora, this.asl, this.slo,
-            this.jsr, this.and, this.kil, this.rla, this.bit, this.and, this.rol, this.rla,
-            this.plp, this.and, this.rol, this.anc, this.bit, this.and, this.rol, this.rla,
-            this.bmi, this.and, this.kil, this.rla, this.nop, this.and, this.rol, this.rla,
-            this.sec, this.and, this.nop, this.rla, this.nop, this.and, this.rol, this.rla,
-            this.rti, this.eor, this.kil, this.sre, this.nop, this.eor, this.lsr, this.sre,
-            this.pha, this.eor, this.lsr, this.alr, this.jmp, this.eor, this.lsr, this.sre,
-            this.bvc, this.eor, this.kil, this.sre, this.nop, this.eor, this.lsr, this.sre,
-            this.cli, this.eor, this.nop, this.sre, this.nop, this.eor, this.lsr, this.sre,
-            this.rts, this.adc, this.kil, this.rra, this.nop, this.adc, this.ror, this.rra,
-            this.pla, this.adc, this.ror, this.arr, this.jmp, this.adc, this.ror, this.rra,
-            this.bvs, this.adc, this.kil, this.rra, this.nop, this.adc, this.ror, this.rra,
-            this.sei, this.adc, this.nop, this.rra, this.nop, this.adc, this.ror, this.rra,
-            this.nop, this.sta, this.nop, this.sax, this.sty, this.sta, this.stx, this.sax,
-            this.dey, this.nop, this.txa, this.xaa, this.sty, this.sta, this.stx, this.sax,
-            this.bcc, this.sta, this.kil, this.ahx, this.sty, this.sta, this.stx, this.sax,
-            this.tya, this.sta, this.txs, this.tas, this.shy, this.sta, this.shx, this.ahx,
-            this.ldy, this.lda, this.ldx, this.lax, this.ldy, this.lda, this.ldx, this.lax,
-            this.tay, this.lda, this.tax, this.lax, this.ldy, this.lda, this.ldx, this.lax,
-            this.bcs, this.lda, this.kil, this.lax, this.ldy, this.lda, this.ldx, this.lax,
-            this.clv, this.lda, this.tsx, this.las, this.ldy, this.lda, this.ldx, this.lax,
-            this.cpy, this.cmp, this.nop, this.dcp, this.cpy, this.cmp, this.dec, this.dcp,
-            this.iny, this.cmp, this.dex, this.axs, this.cpy, this.cmp, this.dec, this.dcp,
-            this.bne, this.cmp, this.kil, this.dcp, this.nop, this.cmp, this.dec, this.dcp,
-            this.cld, this.cmp, this.nop, this.dcp, this.nop, this.cmp, this.dec, this.dcp,
-            this.cpx, this.sbc, this.nop, this.isc, this.cpx, this.sbc, this.inc, this.isc,
-            this.inx, this.sbc, this.nop, this.sbc, this.cpx, this.sbc, this.inc, this.isc,
-            this.beq, this.sbc, this.kil, this.isc, this.nop, this.sbc, this.inc, this.isc,
-            this.sed, this.sbc, this.nop, this.isc, this.nop, this.sbc, this.inc, this.isc,
+            this.brk.bind(this), this.ora.bind(this), this.kil.bind(this), this.slo.bind(this), this.nop.bind(this), this.ora.bind(this), this.asl.bind(this), this.slo.bind(this),
+            this.php.bind(this), this.ora.bind(this), this.asl.bind(this), this.anc.bind(this), this.nop.bind(this), this.ora.bind(this), this.asl.bind(this), this.slo.bind(this),
+            this.bpl.bind(this), this.ora.bind(this), this.kil.bind(this), this.slo.bind(this), this.nop.bind(this), this.ora.bind(this), this.asl.bind(this), this.slo.bind(this),
+            this.clc.bind(this), this.ora.bind(this), this.nop.bind(this), this.slo.bind(this), this.nop.bind(this), this.ora.bind(this), this.asl.bind(this), this.slo.bind(this),
+            this.jsr.bind(this), this.and.bind(this), this.kil.bind(this), this.rla.bind(this), this.bit.bind(this), this.and.bind(this), this.rol.bind(this), this.rla.bind(this),
+            this.plp.bind(this), this.and.bind(this), this.rol.bind(this), this.anc.bind(this), this.bit.bind(this), this.and.bind(this), this.rol.bind(this), this.rla.bind(this),
+            this.bmi.bind(this), this.and.bind(this), this.kil.bind(this), this.rla.bind(this), this.nop.bind(this), this.and.bind(this), this.rol.bind(this), this.rla.bind(this),
+            this.sec.bind(this), this.and.bind(this), this.nop.bind(this), this.rla.bind(this), this.nop.bind(this), this.and.bind(this), this.rol.bind(this), this.rla.bind(this),
+            this.rti.bind(this), this.eor.bind(this), this.kil.bind(this), this.sre.bind(this), this.nop.bind(this), this.eor.bind(this), this.lsr.bind(this), this.sre.bind(this),
+            this.pha.bind(this), this.eor.bind(this), this.lsr.bind(this), this.alr.bind(this), this.jmp.bind(this), this.eor.bind(this), this.lsr.bind(this), this.sre.bind(this),
+            this.bvc.bind(this), this.eor.bind(this), this.kil.bind(this), this.sre.bind(this), this.nop.bind(this), this.eor.bind(this), this.lsr.bind(this), this.sre.bind(this),
+            this.cli.bind(this), this.eor.bind(this), this.nop.bind(this), this.sre.bind(this), this.nop.bind(this), this.eor.bind(this), this.lsr.bind(this), this.sre.bind(this),
+            this.rts.bind(this), this.adc.bind(this), this.kil.bind(this), this.rra.bind(this), this.nop.bind(this), this.adc.bind(this), this.ror.bind(this), this.rra.bind(this),
+            this.pla.bind(this), this.adc.bind(this), this.ror.bind(this), this.arr.bind(this), this.jmp.bind(this), this.adc.bind(this), this.ror.bind(this), this.rra.bind(this),
+            this.bvs.bind(this), this.adc.bind(this), this.kil.bind(this), this.rra.bind(this), this.nop.bind(this), this.adc.bind(this), this.ror.bind(this), this.rra.bind(this),
+            this.sei.bind(this), this.adc.bind(this), this.nop.bind(this), this.rra.bind(this), this.nop.bind(this), this.adc.bind(this), this.ror.bind(this), this.rra.bind(this),
+            this.nop.bind(this), this.sta.bind(this), this.nop.bind(this), this.sax.bind(this), this.sty.bind(this), this.sta.bind(this), this.stx.bind(this), this.sax.bind(this),
+            this.dey.bind(this), this.nop.bind(this), this.txa.bind(this), this.xaa.bind(this), this.sty.bind(this), this.sta.bind(this), this.stx.bind(this), this.sax.bind(this),
+            this.bcc.bind(this), this.sta.bind(this), this.kil.bind(this), this.ahx.bind(this), this.sty.bind(this), this.sta.bind(this), this.stx.bind(this), this.sax.bind(this),
+            this.tya.bind(this), this.sta.bind(this), this.txs.bind(this), this.tas.bind(this), this.shy.bind(this), this.sta.bind(this), this.shx.bind(this), this.ahx.bind(this),
+            this.ldy.bind(this), this.lda.bind(this), this.ldx.bind(this), this.lax.bind(this), this.ldy.bind(this), this.lda.bind(this), this.ldx.bind(this), this.lax.bind(this),
+            this.tay.bind(this), this.lda.bind(this), this.tax.bind(this), this.lax.bind(this), this.ldy.bind(this), this.lda.bind(this), this.ldx.bind(this), this.lax.bind(this),
+            this.bcs.bind(this), this.lda.bind(this), this.kil.bind(this), this.lax.bind(this), this.ldy.bind(this), this.lda.bind(this), this.ldx.bind(this), this.lax.bind(this),
+            this.clv.bind(this), this.lda.bind(this), this.tsx.bind(this), this.las.bind(this), this.ldy.bind(this), this.lda.bind(this), this.ldx.bind(this), this.lax.bind(this),
+            this.cpy.bind(this), this.cmp.bind(this), this.nop.bind(this), this.dcp.bind(this), this.cpy.bind(this), this.cmp.bind(this), this.dec.bind(this), this.dcp.bind(this),
+            this.iny.bind(this), this.cmp.bind(this), this.dex.bind(this), this.axs.bind(this), this.cpy.bind(this), this.cmp.bind(this), this.dec.bind(this), this.dcp.bind(this),
+            this.bne.bind(this), this.cmp.bind(this), this.kil.bind(this), this.dcp.bind(this), this.nop.bind(this), this.cmp.bind(this), this.dec.bind(this), this.dcp.bind(this),
+            this.cld.bind(this), this.cmp.bind(this), this.nop.bind(this), this.dcp.bind(this), this.nop.bind(this), this.cmp.bind(this), this.dec.bind(this), this.dcp.bind(this),
+            this.cpx.bind(this), this.sbc.bind(this), this.nop.bind(this), this.isc.bind(this), this.cpx.bind(this), this.sbc.bind(this), this.inc.bind(this), this.isc.bind(this),
+            this.inx.bind(this), this.sbc.bind(this), this.nop.bind(this), this.sbc.bind(this), this.cpx.bind(this), this.sbc.bind(this), this.inc.bind(this), this.isc.bind(this),
+            this.beq.bind(this), this.sbc.bind(this), this.kil.bind(this), this.isc.bind(this), this.nop.bind(this), this.sbc.bind(this), this.inc.bind(this), this.isc.bind(this),
+            this.sed.bind(this), this.sbc.bind(this), this.nop.bind(this), this.isc.bind(this), this.nop.bind(this), this.sbc.bind(this), this.inc.bind(this), this.isc.bind(this),
         ]
     }
     reset() {
-        this.PC = this.Read16(0xFFFC)
+        this.PC = this.read16(0xFFFC)
         this.SP = 0xFD
         this.SetFlags(0x24)
     }
@@ -241,8 +243,8 @@ module.exports.CPU = class CPU {
             this.A, this.X, this.Y, this.Flags(),
             this.SP, (this.Cycles * 3) % 341].map(i => byte(i)))
     }
-    read16(address) {
-        const address = uint16(address)
+    read16(adr) {
+        const address = uint16(adr)
         const lo = uint16(this.Memory.read(address))
         const hi = uint16(this.Memory.read(address + 1))
         return uint16(hi << 8 | lo)
@@ -268,8 +270,8 @@ module.exports.CPU = class CPU {
     }
 
     // Read16 reads two bytes using Read to return a double-word value
-    read16(address) {
-        const address = uint16(address)
+    read16(adr) {
+        const address = uint16(adr)
         const lo = uint16(this.Memory.read(address))
         const hi = uint16(this.Memory.read(address + 1))
         return uint16(hi << 8 | lo)
@@ -314,7 +316,7 @@ module.exports.CPU = class CPU {
 
     // Flags returns the processor status flags
     Flags() {
-        var flags = byte(0)
+        let flags = byte(0)
         flags |= this.C << 0
         flags |= this.Z << 1
         flags |= this.I << 2
@@ -364,13 +366,13 @@ module.exports.CPU = class CPU {
 
     // triggerNMI causes a non-maskable interrupt to occur on the next cycle
     triggerNMI() {
-        this.interrupt = interruptNMI
+        this.interrupt = this.interruptNMI
     }
 
     // triggerIRQ causes an IRQ interrupt to occur on the next cycle
     triggerIRQ() {
         if (this.I == 0) {
-            this.interrupt = interruptIRQ
+            this.interrupt = this.interruptIRQ
         }
     }
 
@@ -387,40 +389,51 @@ module.exports.CPU = class CPU {
         const cycles = this.Cycles
 
         switch (this.interrupt) {
-            case interruptNMI:
+            case this.interruptNMI:
                 this.nmi()
-            case interruptIRQ:
+                break
+            case this.interruptIRQ:
                 this.irq()
+                break
         }
-        this.interrupt = interruptNone
+        this.interrupt = this.interruptNone
 
         const opcode = this.Memory.read(this.PC)
         const mode = instructionModes[opcode]
 
-        var address = uint16(0)
-        var pageCrossed = false
+        let address = uint16(0)
+        let pageCrossed = false
         switch (mode) {
             case this.modeAbsolute:
-                address = this.Read16(this.PC + 1)
+                address = this.read16(this.PC + 1)
+                break
             case this.modeAbsoluteX:
-                address = this.Read16(this.PC + 1) + uint16(this.X)
-                pageCrossed = pagesDiffer(address - uint16(this.X), address)
+                address = this.read16(this.PC + 1) + uint16(this.X)
+                pageCrossed = this.pagesDiffer(address - uint16(this.X), address)
+                break
             case this.modeAbsoluteY:
-                address = this.Read16(this.PC + 1) + uint16(this.Y)
-                pageCrossed = pagesDiffer(address - uint16(this.Y), address)
+                address = this.read16(this.PC + 1) + uint16(this.Y)
+                pageCrossed = this.pagesDiffer(address - uint16(this.Y), address)
+                break
             case this.modeAccumulator:
                 address = 0
+                break
             case this.modeImmediate:
                 address = this.PC + 1
+                break
             case this.modeImplied:
                 address = 0
+                break
             case this.modeIndexedIndirect:
                 address = this.read16bug(uint16(this.Memory.read(this.PC + 1) + this.X))
+                break
             case this.modeIndirect:
-                address = this.read16bug(this.Read16(this.PC + 1))
+                address = this.read16bug(this.read16(this.PC + 1))
+                break
             case this.modeIndirectIndexed:
                 address = this.read16bug(uint16(this.Memory.read(this.PC + 1))) + uint16(this.Y)
-                pageCrossed = pagesDiffer(address - uint16(this.Y), address)
+                pageCrossed = this.pagesDiffer(address - uint16(this.Y), address)
+                break
             case this.modeRelative:
                 const offset = uint16(this.Memory.read(this.PC + 1))
                 if (offset < 0x80) {
@@ -428,20 +441,27 @@ module.exports.CPU = class CPU {
                 } else {
                     address = this.PC + 2 + offset - 0x100
                 }
+                break
             case this.modeZeroPage:
                 address = uint16(this.Memory.read(this.PC + 1))
+                break
             case this.modeZeroPageX:
                 address = uint16(this.Memory.read(this.PC + 1) + this.X) & 0xff
+                break
             case this.modeZeroPageY:
                 address = uint16(this.Memory.read(this.PC + 1) + this.Y) & 0xff
+                break
         }
+        console.log("<<<", this.PC.x(), mode.x(), opcode.x(), address.x())
 
         this.PC += uint16(instructionSizes[opcode])
         this.Cycles += uint64(instructionCycles[opcode])
         if (pageCrossed) {
             this.Cycles += uint64(instructionPageCycles[opcode])
         }
-        const info = new StepInfo(address, this.PC, mode)
+        const info = new module.exports.StepInfo(address, this.PC, mode)
+
+        console.log(">>>", this.PC.x(), info, instructionNames[opcode], this.table[opcode])
         this.table[opcode](info)
 
         return int(this.Cycles - cycles)
@@ -460,7 +480,7 @@ module.exports.CPU = class CPU {
     irq() {
         this.push16(this.PC)
         this.php(nil)
-        this.PC = this.Read16(0xFFFE)
+        this.PC = this.read16(0xFFFE)
         this.I = 1
         this.Cycles += 7
     }
@@ -566,7 +586,7 @@ module.exports.CPU = class CPU {
         this.push16(this.PC)
         this.php(info)
         this.sei(info)
-        this.PC = this.Read16(0xFFFE)
+        this.PC = this.read16(0xFFFE)
     }
 
     // BVC - Branch if Overflow Clear

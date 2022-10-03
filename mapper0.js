@@ -28,7 +28,7 @@ module.exports.Mapper0 = class Mapper0 {
             case address >= 0x6000:
 
                 index = int(address) - 0x6000
-                fmt.Println("!!!", index, m.SRAM[index])
+                console.log("!!!", index, m.SRAM[index])
                 return byte(this.cart.sram[index])
             default:
                 console.error("unhandled mapper2 read at address: 0x%04X" + address)
@@ -42,14 +42,18 @@ module.exports.Mapper0 = class Mapper0 {
         const address = uint16(adr)
         switch (true) {
             case address < 0x2000:
+                console.log("::", address)
                 this.cart.chr[address] = value
                 break
             case address >= 0x8000:
+                console.log("::", address)
                 this.prgBank1 = int(value) % this.prgBanks
                 break
             case address >= 0x6000:
+                console.log("::", address)
                 const index = int(address) - 0x6000
                 this.cart.sram[index] = value
+                console.log("!!!", index, m.SRAM[index])
                 break
             default:
                 console.error("unhandled mapper2 write at address: 0x%04X" + address)

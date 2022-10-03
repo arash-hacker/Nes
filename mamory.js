@@ -30,14 +30,17 @@ module.exports.CPUMemory = class CPUMemory {
     read(address) {
         switch (true) {
             case uint16(address) < 0x2000:
+                console.log(":11:", address)
                 return this.console.RAM[address % 0x0800]
             case uint16(address) < 0x4000:
-                console.log("::", address)
-                // return this.console.PPU.readRegister(0x2000 + address % 8)
+                console.log(":22:", address)
+                const m = this.console.PPU.readRegister(0x2000 + address % 8)
+                console.log(":222:", m)
+                return m
                 break
             case uint16(address) == 0x4014:
-                console.log("::", address)
-                // return this.console.PPU.readRegister(address)
+                console.log(":33:", address)
+                return this.console.PPU.readRegister(address)
                 break
             case uint16(address) == 0x4015:
                 console.log("::", address)
@@ -52,10 +55,11 @@ module.exports.CPUMemory = class CPUMemory {
                 // return this.console.Controller2.read()
                 break
             case uint16(address) < 0x6000:
+                console.log("::", address)
                 // TODO: I/O registers
                 break
             case uint16(address) >= 0x6000:
-                console.log("::", address)
+                console.log(":44:", address)
                 // console.log("....", this.console.Mapper)
                 return this.console.Mapper.read(address)
             default:
@@ -68,31 +72,41 @@ module.exports.CPUMemory = class CPUMemory {
         // console.log(address.x(), "<<<||")
         switch (true) {
             case uint16(address) < 0x2000:
+                console.log(":55:", address)
                 this.console.RAM[address % 0x0800] = value
                 break
             case uint16(address) < 0x4000:
-                // this.console.PPU.writeRegister(0x2000 + address % 8, value)
+                console.log(":66:", address)
+                this.console.PPU.writeRegister(0x2000 + address % 8, value)
                 break
             case uint16(address) < 0x4014:
+                console.log("::", address)
                 // this.console.APU.writeRegister(address, value)
                 break
             case uint16(address) == 0x4014:
-                // this.console.PPU.writeRegister(address, value)
+                console.log(":77:", address)
+                this.console.PPU.writeRegister(address, value)
                 break
             case uint16(address) == 0x4015:
+                console.log("::", address)
                 // this.console.APU.writeRegister(address, value)
                 break
             case uint16(address) == 0x4016:
-                this.console.Controller1.write(value)
-                this.console.Controller2.write(value)
+                console.log("::", address)
+                // this.console.Controller1.write(value)
+                // this.console.Controller2.write(value)
                 break
             case uint16(address) == 0x4017:
-                this.console.APU.writeRegister(address, value)
+                console.log("::", address)
+                // this.console.APU.writeRegister(address, value)
                 break
             case uint16(address) < 0x6000:
+                console.log("::", address)
                 // TODO: I/O registers
                 break
             case uint16(address) >= 0x6000:
+                console.log(":999:", address)
+
                 this.console.Mapper.write(address, value)
                 break
             default:
@@ -109,11 +123,16 @@ module.exports.PPUMemory = class PPUMemory {
         const address = uint16(adr) % 0x4000
         switch (true) {
             case uint16(address) < 0x2000:
+                console.log(":m:", address)
                 return this.console.Mapper.read(address)
             case uint16(address) < 0x3F00:
+                console.log(":mm:", address)
+
                 const mode = this.console.Cart.mirror
                 return this.console.PPU.nameTableData[MirrorAddress(mode, address) % 2048]
             case uint16(address) < 0x4000:
+                console.log(":mmm:", address)
+
                 return this.console.PPU.readPalette(address % 32)
             default:
                 console.error("unhandled ppu memory read at address: 0x%04X", address)
@@ -125,13 +144,17 @@ module.exports.PPUMemory = class PPUMemory {
         const address = uint16(adr) % 0x4000
         switch (true) {
             case uint16(address) < 0x2000:
+                console.log(":n:", address)
                 this.console.Mapper.write(address, byte(value))
                 break
             case uint16(address) < 0x3F00:
+                console.log(":nn:", address)
+
                 const mode = this.console.Cart.mirror
                 this.console.PPU.nameTableData[MirrorAddress(mode, address) % 2048] = byte(value)
                 break
             case uint16(address) < 0x4000:
+                console.log(":nnn:", address)
                 this.console.PPU.writePalette(address % 32, byte(value))
                 break
             default:

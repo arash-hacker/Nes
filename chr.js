@@ -75,5 +75,5 @@ function check() {
     console.log(this.mapper)
     return rom
 }
-check()
-// printCHR(rom, CHR)
+// check()
+printCHR(rom, CHR)

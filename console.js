@@ -8,7 +8,6 @@ module.exports.Console = class Console {
         this.CPU = new CPU(this);
         this.PPU = null;
         this.APU = null;
-        this.Cartridge = null;
         this.Controller1 = null
         this.Controller2 = null;
         this.RAM = new Array(2048).fill(0x00)

@@ -6,9 +6,6 @@ Number.prototype.x = function () {
     return this.toString(16).padStart(4, '0')
 }
 module.exports.CPUFrequency = 1789773
-
-
-
 module.exports.StepInfo = class StepInfo {
     constructor(address, pc, mode) {
         this.address = uint16(address)
@@ -56,8 +53,6 @@ var instructionSizes = [
     2, 2, 0, 0, 2, 2, 2, 0, 1, 3, 1, 0, 3, 3, 3, 0,
 ].map(i => byte(i))
 
-// instructionCycles indicates the number of cycles used by each instruction,
-// not including conditional cycles
 var instructionCycles = [
     7, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 4, 4, 6, 6,
     2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
@@ -98,7 +93,6 @@ var instructionPageCycles = [
     1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
 ].map(i => byte(i))
 
-// instructionNames indicates the name of each instruction
 var instructionNames = [
     "BRK", "ORA", "KIL", "SLO", "NOP", "ORA", "ASL", "SLO",
     "PHP", "ORA", "ASL", "ANC", "NOP", "ORA", "ASL", "SLO",
@@ -155,7 +149,7 @@ module.exports.CPU = class CPU {
         this.modeZeroPageX = 12
         this.modeZeroPageY = 13
 
-        this.Memory = new CPUMemory(console);         // memory interface
+        this.Memory = new CPUMemory(console);// memory interface
         this.Cycles = uint64(0x00) // number of cycles
         this.PC = uint16(0x00) // program counter
         this.SP = byte(0x00)   // stack pointer
@@ -288,12 +282,15 @@ module.exports.CPU = class CPU {
     }
 
     // push pushes a byte onto the stack
+    // maybe bug & 0x01FF
     push(value) {
+
         this.Memory.write(0x100 | uint16(this.SP), byte(value))
         this.SP--
     }
 
     // pull pops a byte from the stack
+    // maybe bug & 0x01FF
     pull() {
         this.SP++
         return byte(this.Memory.read(0x100 | uint16(this.SP)))
@@ -953,7 +950,4 @@ module.exports.CPU = class CPU {
 
     xaa(info) {
     }
-
-
-
 }

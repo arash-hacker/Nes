@@ -33,28 +33,22 @@ module.exports.CPUMemory = class CPUMemory {
                 return this.console.RAM[address % 0x0800]
             case uint16(address) < 0x4000:
                 console.log("::", address)
-
                 // return this.console.PPU.readRegister(0x2000 + address % 8)
                 break
             case uint16(address) == 0x4014:
                 console.log("::", address)
-
                 // return this.console.PPU.readRegister(address)
                 break
             case uint16(address) == 0x4015:
                 console.log("::", address)
-
                 // return this.console.APU.readRegister(address)
                 break
             case uint16(address) == 0x4016:
                 console.log("::", address)
-
                 // return this.console.Controller1.read()
                 break
             case uint16(address) == 0x4017:
-
                 console.log("::", address)
-
                 // return this.console.Controller2.read()
                 break
             case uint16(address) < 0x6000:
@@ -62,7 +56,6 @@ module.exports.CPUMemory = class CPUMemory {
                 break
             case uint16(address) >= 0x6000:
                 console.log("::", address)
-
                 // console.log("....", this.console.Mapper)
                 return this.console.Mapper.read(address)
             default:
@@ -118,7 +111,7 @@ module.exports.PPUMemory = class PPUMemory {
             case uint16(address) < 0x2000:
                 return this.console.Mapper.read(address)
             case uint16(address) < 0x3F00:
-                const mode = this.console.Cartridge.Mirror
+                const mode = this.console.Cart.mirror
                 return this.console.PPU.nameTableData[MirrorAddress(mode, address) % 2048]
             case uint16(address) < 0x4000:
                 return this.console.PPU.readPalette(address % 32)
@@ -135,7 +128,7 @@ module.exports.PPUMemory = class PPUMemory {
                 this.console.Mapper.write(address, byte(value))
                 break
             case uint16(address) < 0x3F00:
-                const mode = this.console.Cartridge.Mirror
+                const mode = this.console.Cart.mirror
                 this.console.PPU.nameTableData[MirrorAddress(mode, address) % 2048] = byte(value)
                 break
             case uint16(address) < 0x4000:

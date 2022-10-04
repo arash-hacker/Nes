@@ -1,11 +1,11 @@
 const { Console } = require("./console");
 
 let c = new Console()
-// console.log = function () { }
+console.log = function () { }
 if (c.Cart.battery != 0) {
     // TODO
-    console.log("battery")
-    process.exit()
+    console.info("battery")
+    process.exit(1)
     // cartridge.SRAM = readSRAM(sramPath(view.hash))
 }
 let i = 0;

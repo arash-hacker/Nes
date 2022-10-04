@@ -1,4 +1,4 @@
-const Jimp = require('jimp');
+const { Image } = require('./image');
 const { PPUMemory } = require('./mamory');
 const { Palette } = require("./palette")
 const { byte, uint16, int, uint32, uint64 } = require("./utils")
@@ -124,19 +124,19 @@ module.exports.PPU = class PPU {
 
 
     async Reset() {
-        this.front = await Jimp.create(256, 240);//image.NewRGBA(image.Rect(0, 0, 256, 240))////<<<<<<<<
-        this.back = await Jimp.create(256, 240);//image.NewRGBA(image.Rect(0, 0, 256, 240))/////<<<<<<<<
         this.Cycle = 340
         this.ScanLine = 240
         this.Frame = 0
         this.writeControl(0)
         this.writeMask(0)
         this.writeOAMAddress(0)
+        this.front = new Image(256, 240);//image.NewRGBA(image.Rect(0, 0, 256, 240))////<<<<<<<<
+        this.back = new Image(256, 240);//image.NewRGBA(image.Rect(0, 0, 256, 240))/////<<<<<<<<
     }
 
     readPalette(adr) {
         const address = uint16(adr)
-        if (address >= 16 && address % 4 == 0) {
+        if (address >= 16 && (address % 4 == 0)) {
             address -= 16
         }
         return byte(this.paletteData[address])
@@ -145,7 +145,7 @@ module.exports.PPU = class PPU {
     writePalette(adr, val) {
         let address = uint16(adr)
         const value = byte(val)
-        if (address >= 16 && address % 4 == 0) {
+        if (address >= 16 && (address % 4 == 0)) {
             address -= 16
         }
         this.paletteData[address] = value
@@ -207,7 +207,7 @@ module.exports.PPU = class PPU {
         this.flagBackgroundTable = (value >> 4) & 1
         this.flagSpriteSize = (value >> 5) & 1
         this.flagMasterSlave = (value >> 6) & 1
-        this.nmiOutput = (value >> 7) & 1 == 1
+        this.nmiOutput = ((value >> 7) & 1) == 1
         this.nmiChange()
         // t: ....BA.. ........ = d: ......BA
         this.t = (this.t & 0xF3FF) | ((uint16(value) & 0x03) << 10)
@@ -353,7 +353,7 @@ module.exports.PPU = class PPU {
             address++
         }
         cpu.stall += 513
-        if (cpu.Cycles % 2 == 1) {
+        if ((cpu.Cycles % 2) == 1) {
             cpu.stall++
         }
     }
@@ -364,7 +364,7 @@ module.exports.PPU = class PPU {
         // increment hori(v)
         // if coarse X == 31
         console.log(":v:67", this.v, this.v & 0x001F)
-        if (this.v & 0x001F == 31) {
+        if ((this.v & 0x001F) == 31) {
             // coarse X = 0
             this.v &= 0xFFE0
             // switch horizontal nametable
@@ -382,7 +382,7 @@ module.exports.PPU = class PPU {
     incrementY() {
         // increment vert(v)
         // if fine Y < 7
-        if (this.v & 0x7000 != 0x7000) {
+        if ((this.v & 0x7000) != 0x7000) {
             // increment fine Y
             this.v += 0x1000
             console.log(":v:8", this.v)
@@ -524,7 +524,7 @@ module.exports.PPU = class PPU {
             }
             offset = 7 - offset
             let color = byte((this.spritePatterns[i] >> byte(offset * 4)) & 0x0F)
-            if (color % 4 == 0) {
+            if ((color % 4) == 0) {
                 continue
             }
             return [byte(i), byte(color)]
@@ -533,18 +533,19 @@ module.exports.PPU = class PPU {
     }
 
     async renderPixel() {
+        console.info("renderPixel")
         let x = this.Cycle - 1
         let y = this.ScanLine
         let background = this.backgroundPixel()
         let [i, sprite] = this.spritePixel()
-        if (x < 8 && this.flagShowLeftBackground == 0) {
+        if (x < 8 && (this.flagShowLeftBackground == 0)) {
             background = 0
         }
-        if (x < 8 && this.flagShowLeftSprites == 0) {
+        if (x < 8 && (this.flagShowLeftSprites == 0)) {
             sprite = 0
         }
-        let b = background % 4 != 0
-        let s = sprite % 4 != 0
+        let b = ((background % 4) != 0)
+        let s = ((sprite % 4) != 0)
         let color = byte(0)
         if (!b && !s) {
             color = 0
@@ -553,7 +554,7 @@ module.exports.PPU = class PPU {
         } else if (b && !s) {
             color = background
         } else {
-            if (this.spriteIndexes[i] == 0 && x < 255) {
+            if ((this.spriteIndexes[i] == 0) && x < 255) {
                 this.flagSpriteZeroHit = 1
             }
             if (this.spritePriorities[i] == 0) {
@@ -564,10 +565,9 @@ module.exports.PPU = class PPU {
         }
         const c = Palette[this.readPalette(uint16(color)) % 64]
         this.back.setPixelColor(c, x, y)
-        console.info("first rgba", x, y, c)
+        console.info("second rgba", x, y, c)
         // this.back.write("./ppu-out/" + (++ppuCounter).toString(10).padStart(5) + ".png")
-        process.exit(0)
-        //this.back.SetRGBA(x, y, c) // <<<<<<<<<<<<<
+        process.exit(1)
     }
 
     fetchSpritePattern(i, row) {
@@ -575,13 +575,13 @@ module.exports.PPU = class PPU {
         let attributes = this.oamData[i * 4 + 2]
         let address = uint16(0)
         if (this.flagSpriteSize == 0) {
-            if (attributes & 0x80 == 0x80) {
+            if ((attributes & 0x80) == 0x80) {
                 row = 7 - row
             }
             let table = this.flagSpriteTable
             address = 0x1000 * uint16(table) + uint16(tile) * 16 + uint16(row)
         } else {
-            if (attributes & 0x80 == 0x80) {
+            if ((attributes & 0x80) == 0x80) {
                 row = 15 - row
             }
             let table = tile & 1
@@ -600,7 +600,7 @@ module.exports.PPU = class PPU {
         for (let i = 0; i < 8; i++) {
             let p1 = byte(0)
             let p2 = byte(0)
-            if (attributes & 0x40 == 0x40) {
+            if ((attributes & 0x40) == 0x40) {
                 p1 = (lowTileByte & 1) << 0
                 p2 = (highTileByte & 1) << 1
                 lowTileByte >>= 1
@@ -652,13 +652,13 @@ module.exports.PPU = class PPU {
     tick() {
         if (this.nmiDelay > 0) {
             this.nmiDelay--
-            if (this.nmiDelay == 0 && this.nmiOutput && this.nmiOccurred) {
+            if ((this.nmiDelay == 0) && this.nmiOutput && this.nmiOccurred) {
                 this.console.CPU.triggerNMI()
             }
         }
 
         if (this.flagShowBackground != 0 || this.flagShowSprites != 0) {
-            if (this.f == 1 && this.ScanLine == 261 && this.Cycle == 339) {
+            if ((this.f == 1) && (this.ScanLine == 261) && (this.Cycle == 339)) {
                 this.Cycle = 0
                 this.ScanLine = 0
                 this.Frame++
@@ -687,7 +687,7 @@ module.exports.PPU = class PPU {
             // console.info("renderingEnabled")
             // process.exit(1)
         }
-        let preLine = this.ScanLine == 261
+        let preLine = (this.ScanLine == 261)
         let visibleLine = this.ScanLine < 240
         //postLine :=  this.ScanLine == 240
         let renderLine = preLine || visibleLine
@@ -727,7 +727,7 @@ module.exports.PPU = class PPU {
                 this.copyY()
             }
             if (renderLine) {
-                if (fetchCycle && this.Cycle % 8 == 0) {
+                if (fetchCycle && (this.Cycle % 8 == 0)) {
                     this.incrementX()
                 }
                 if (this.Cycle == 256) {
@@ -751,10 +751,10 @@ module.exports.PPU = class PPU {
         }
 
         // vblank logic
-        if (this.ScanLine == 241 && this.Cycle == 1) {
+        if ((this.ScanLine == 241) && (this.Cycle == 1)) {
             this.setVerticalBlank()
         }
-        if (preLine && this.Cycle == 1) {
+        if (preLine && (this.Cycle == 1)) {
             this.clearVerticalBlank()
             this.flagSpriteZeroHit = 0
             this.flagSpriteOverflow = 0

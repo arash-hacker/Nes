@@ -36,6 +36,7 @@ module.exports.CPUMemory = class CPUMemory {
                 console.log(":22:", address)
                 const m = this.console.PPU.readRegister(0x2000 + address % 8)
                 console.log(":222:", m)
+                // console.log(":222:", this.console.CPU.PC, this.console.CPU.SP, this.console.CPU.A, this.console.CPU.X, this.console.CPU.Y, this.console.CPU.C, this.console.CPU.Z, this.console.CPU.I, this.console.CPU.D, this.console.CPU.B, this.console.CPU.U, this.console.CPU.V, this.console.CPU.N)
                 return m
                 break
             case uint16(address) == 0x4014:

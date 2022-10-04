@@ -26,7 +26,7 @@ module.exports.PPU = class PPU {
         this.register = byte(0)
 
         // NMI flags
-        this.nmiOccurred = false
+        this.nmiOccurred = true
         this.nmiOutput = false
         this.nmiPrevious = false
         this.nmiDelay = byte(0)
@@ -187,11 +187,12 @@ module.exports.PPU = class PPU {
 
     // $2002: PPUSTATUS
     readStatus() {
-        let result = this.register & 0x1F
-        result |= this.flagSpriteOverflow << 5
-        result |= this.flagSpriteZeroHit << 6
+        let result = byte(this.register & 0x1F)
+        result = result | byte(this.flagSpriteOverflow << 5)
+        result = result | byte(this.flagSpriteZeroHit << 6)
+        console.log("????", result, this.nmiOccurred)
         if (this.nmiOccurred) {
-            result |= 1 << 7
+            result = byte(result) | byte(1 << 7)
         }
         this.nmiOccurred = false
         this.nmiChange()

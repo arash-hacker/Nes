@@ -348,11 +348,14 @@ module.exports.CPU = class CPU {
 
     // setN sets the negative flag if the argument is negative (high bit is set)
     setN(value) {
-        if (byte(value) & 0x80 != 0) {
+        // console.log(":N:", value, byte(value) & 0x80)
+        if ((byte(value) & 0x80) != 0) {
             this.N = 1
         } else {
             this.N = 0
         }
+        // console.log(":NN:", this.N)
+
     }
 
     // setZN sets the zero flag and the negative flag
@@ -652,14 +655,17 @@ module.exports.CPU = class CPU {
 
     // DEX - Decrement X Register
     dex(info) {
-        this.X--
+        this.X = byte(this.X - 1)
         this.setZN(this.X)
     }
 
     // DEY - Decrement Y Register
     dey(info) {
-        this.Y--
+        this.Y = byte(this.Y - 1)
+        console.log(":Y:", this.Y)
         this.setZN(this.Y)
+        console.log(":Z:", this.Z)
+
     }
 
     // EOR - Exclusive OR
@@ -703,6 +709,7 @@ module.exports.CPU = class CPU {
         this.A = byte(this.Memory.read(info.address))
         console.log("A:", this.A)
         this.setZN(this.A)
+        console.log(":?:", this.N)
     }
 
     // LDX - Load X Register

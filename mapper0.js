@@ -11,22 +11,22 @@ module.exports.Mapper0 = class Mapper0 {
     step() {
     }
     read(adr) {
-        // console.log(adr.x(), "<00+")
         const address = uint16(adr)
         let index = 0;
         switch (true) {
             case address < 0x2000:
+                console.log("::", address)
                 return byte(this.cart.chr[address])
             case address >= 0xC000:
-
+                console.log("::", address)
                 index = this.prgBank2 * 0x4000 + int(address - 0xC000)
                 return byte(this.cart.prg[index])
             case address >= 0x8000:
-
+                console.log("::", address)
                 index = this.prgBank1 * 0x4000 + int(address - 0x8000)
                 return byte(this.cart.prg[index])
             case address >= 0x6000:
-
+                console.log("::", address)
                 index = int(address) - 0x6000
                 console.log("!!!", index, m.SRAM[index])
                 return byte(this.cart.sram[index])

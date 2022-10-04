@@ -4,7 +4,7 @@ module.exports.Mapper0 = class Mapper0 {
 
     constructor(cart) {
         this.cart = cart
-        this.prgBanks = cart.prg.length / 0x4000
+        this.prgBanks = Math.floor(cart.prg.length / 0x4000)
         this.prgBank1 = 0
         this.prgBank2 = this.prgBanks - 1
     }
@@ -15,18 +15,18 @@ module.exports.Mapper0 = class Mapper0 {
         let index = 0;
         switch (true) {
             case address < 0x2000:
-                console.log("::", address)
+                console.log(":m1:", address)
                 return byte(this.cart.chr[address])
             case address >= 0xC000:
-                console.log("::", address)
+                console.log(":m2:", address)
                 index = this.prgBank2 * 0x4000 + int(address - 0xC000)
                 return byte(this.cart.prg[index])
             case address >= 0x8000:
-                console.log("::", address)
+                console.log(":m3:", address)
                 index = this.prgBank1 * 0x4000 + int(address - 0x8000)
                 return byte(this.cart.prg[index])
             case address >= 0x6000:
-                console.log("::", address)
+                console.log(":m4:", address)
                 index = int(address) - 0x6000
                 console.log("!!!", index, m.SRAM[index])
                 return byte(this.cart.sram[index])

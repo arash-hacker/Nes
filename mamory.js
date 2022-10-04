@@ -17,9 +17,11 @@ module.exports.MirrorLookup = [
 
 function MirrorAddress(mode, adr) {
     const address = (uint16(adr) - 0x2000) % 0x1000
-    const table = address / 0x0400
+    const table = Math.floor(address / 0x0400)
     const offset = address % 0x0400
-    return uint16(0x2000 + module.exports.MirrorLookup[byte(mode)][table] * 0x0400 + offset)
+    let m = uint16(0x2000 + (module.exports.MirrorLookup[byte(mode)][table] * 0x0400) + offset)
+    console.log(":mmmm:", adr, address, table, offset, (module.exports.MirrorLookup[byte(mode)][table] * 0x0400), m)
+    return m;
 }
 
 module.exports.CPUMemory = class CPUMemory {
@@ -31,17 +33,17 @@ module.exports.CPUMemory = class CPUMemory {
         switch (true) {
             case uint16(address) < 0x2000:
                 console.log(":11:", address)
-                return this.console.RAM[address % 0x0800]
+                return byte(this.console.RAM[address % 0x0800])
             case uint16(address) < 0x4000:
                 console.log(":22:", address)
                 const m = this.console.PPU.readRegister(0x2000 + address % 8)
                 console.log(":222:", m)
                 // console.log(":222:", this.console.CPU.PC, this.console.CPU.SP, this.console.CPU.A, this.console.CPU.X, this.console.CPU.Y, this.console.CPU.C, this.console.CPU.Z, this.console.CPU.I, this.console.CPU.D, this.console.CPU.B, this.console.CPU.U, this.console.CPU.V, this.console.CPU.N)
-                return m
+                return byte(m)
                 break
             case uint16(address) == 0x4014:
                 console.log(":33:", address)
-                return this.console.PPU.readRegister(address)
+                return byte(this.console.PPU.readRegister(address))
                 break
             case uint16(address) == 0x4015:
                 console.log("::", address)
@@ -62,15 +64,16 @@ module.exports.CPUMemory = class CPUMemory {
             case uint16(address) >= 0x6000:
                 console.log(":44:", address)
                 // console.log("....", this.console.Mapper)
-                return this.console.Mapper.read(address)
+                return byte(this.console.Mapper.read(address))
             default:
                 console.error("unhandled cpu memory read at address: 0x%04X", address.x())
         }
         return byte(0)
     }
 
-    write(address, value) {
+    write(address, val) {
         // console.log(address.x(), "<<<||")
+        let value = byte(val)
         switch (true) {
             case uint16(address) < 0x2000:
                 console.log(":55:", address)
@@ -125,24 +128,26 @@ module.exports.PPUMemory = class PPUMemory {
         switch (true) {
             case uint16(address) < 0x2000:
                 console.log(":m:", address)
-                return this.console.Mapper.read(address)
+                return byte(this.console.Mapper.read(address))
             case uint16(address) < 0x3F00:
-                console.log(":mm:", address)
 
                 const mode = this.console.Cart.mirror
-                return this.console.PPU.nameTableData[MirrorAddress(mode, address) % 2048]
+                let m = byte(this.console.PPU.nameTableData[MirrorAddress(mode, address) % 2048])
+                console.log(":mm:", adr, address, mode, m, MirrorAddress(mode, address), MirrorAddress(mode, address) % 2048)
+                return m
             case uint16(address) < 0x4000:
                 console.log(":mmm:", address)
 
-                return this.console.PPU.readPalette(address % 32)
+                return byte(this.console.PPU.readPalette(address % 32))
             default:
                 console.error("unhandled ppu memory read at address: 0x%04X", address)
         }
         return byte(0)
     }
 
-    write(adr, value) {
+    write(adr, val) {
         const address = uint16(adr) % 0x4000
+        let value = byte(val)
         switch (true) {
             case uint16(address) < 0x2000:
                 console.log(":n:", address)

@@ -22,7 +22,7 @@ module.exports.Cart = class Cart {
         this.mirror = mirror1 | mirror2 << 1
 
         this.sram = new Array(0x2000).fill(0x00)
-
+        this.battery = (this.control1 >> 1) & 1
 
 
         const Z = 16 + (16384 * this.prgCount)

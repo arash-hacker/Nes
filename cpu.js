@@ -152,24 +152,110 @@ module.exports.CPU = class CPU {
         this.Memory = new CPUMemory(console);// memory interface
         this.Cycles = uint64(0x00) // number of cycles
         this.PC = uint16(0x00) // program counter
-        this.SP = byte(0x00)   // stack pointer
-        this.A = byte(0x00)   // accumulator
-        this.X = byte(0x00)   // x register
-        this.Y = byte(0x00)   // y register
-        this.C = byte(0x00)   // carry flag
-        this.Z = byte(0x00)   // zero flag
-        this.I = byte(0x00)   // interrupt disable flag
-        this.D = byte(0x00)   // decimal mode flag
-        this.B = byte(0x00)   // break command flag
-        this.U = byte(0x00)   // unused flag
-        this.V = byte(0x00)   // overflow flag
-        this.N = byte(0x00)   // negative flag
+        this._SP = byte(0x00)   // stack pointer
+        this._A = byte(0x00)   // accumulator
+        this._X = byte(0x00)   // x register
+        this._Y = byte(0x00)   // y register
+        this._C = byte(0x00)   // carry flag
+        this._Z = byte(0x00)   // zero flag
+        this._I = byte(0x00)   // interrupt disable flag
+        this._D = byte(0x00)   // decimal mode flag
+        this._B = byte(0x00)   // break command flag
+        this._U = byte(0x00)   // unused flag
+        this._V = byte(0x00)   // overflow flag
+        this._N = byte(0x00)   // negative flag
         this.interrupt = byte(0x00)   // interrupt type to perform
         this.stall = int(0x00)    // number of cycles to stall
         this.table = [];
         this.createTable()
         this.reset()
         return this
+    }
+    //     this.SP = byte(0x00)   // stack pointer
+    get SP() {
+        return this._SP;
+    }
+    set SP(v) {
+        this._SP = byte(v)
+    }
+    // this.A = byte(0x00)   // accumulator
+    get A() {
+        return this._A;
+    }
+    set A(v) {
+        this._A = byte(v)
+    }
+    // this.X = byte(0x00)   // x register
+
+    get X() {
+        return this._X;
+    }
+    set X(v) {
+        this._X = byte(v)
+    }
+
+    // this.C = byte(0x00)   // carry flag
+    get C() {
+        return this._C;
+    }
+    set C(v) {
+        this._C = byte(v)
+    }
+    // this.Y = byte(0x00)   // y register
+    get Y() {
+        return this._Y;
+    }
+    set Y(v) {
+        this._Y = byte(v)
+    }
+    // this.Z = byte(0x00)   // zero flag
+    get Z() {
+        return this._Z;
+    }
+    set Z(v) {
+        this._Z = byte(v)
+    }
+    // this.I = byte(0x00)   // interrupt disable flag
+    get I() {
+        return this._I;
+    }
+    set I(v) {
+        this._I = byte(v)
+    }
+    // this.D = byte(0x00)   // decimal mode flag
+    get D() {
+        return this._D;
+    }
+    set D(v) {
+        this._D = byte(v)
+    }
+    // this.B = byte(0x00)   // break command flag
+    get B() {
+        return this._B;
+    }
+    set B(v) {
+        this._B = byte(v)
+    }
+    // this.U = byte(0x00)   // unused flag
+    get U() {
+        return this._U;
+    }
+    set U(v) {
+        this._U = byte(v)
+    }
+    // this.V = byte(0x00)   // overflow flag
+    get V() {
+        return this._V;
+    }
+    set V(v) {
+        this._V = byte(v)
+    }
+    // this.N = byte(0x00)   // negative flag
+    get N() {
+        return this._N;
+    }
+    set N(v) {
+        this._N = byte(v)
     }
     createTable() {
         this.table = [
@@ -244,11 +330,12 @@ module.exports.CPU = class CPU {
         return uint16(hi << 8 | lo)
     }
     pagesDiffer(a, b) {
-        return a & 0xFF00 != b & 0xFF00
+        return (a & 0xFF00) != (b & 0xFF00)
     }
 
     addBranchCycles(info) {
         this.Cycles++
+        console.log(":zzz:", this.pagesDiffer(info.pc, info.address))
         if (this.pagesDiffer(info.pc, info.address)) {
             this.Cycles++
         }
@@ -457,7 +544,7 @@ module.exports.CPU = class CPU {
 
         this.PC += uint16(instructionSizes[opcode])
         this.Cycles = uint64(this.Cycles + uint64(instructionCycles[opcode]))
-        console.log(":zz:", this.Cycles, uint64(instructionCycles[opcode]))
+        console.log(":zz:", this.Cycles, uint64(instructionCycles[opcode]), pageCrossed)
 
         if (pageCrossed) {
             this.Cycles += uint64(instructionPageCycles[opcode])
@@ -476,7 +563,7 @@ module.exports.CPU = class CPU {
     // NMI - Non-Maskable Interrupt
     nmi() {
         this.push16(this.PC)
-        this.php(nil)
+        this.php(null)
         this.PC = this.read16(0xFFFA)
         this.I = 1
         this.Cycles += 7
@@ -485,7 +572,7 @@ module.exports.CPU = class CPU {
     // IRQ - IRQ Interrupt
     irq() {
         this.push16(this.PC)
-        this.php(nil)
+        this.php(null)
         this.PC = this.read16(0xFFFE)
         this.I = 1
         this.Cycles += 7
@@ -495,15 +582,15 @@ module.exports.CPU = class CPU {
     adc(info) {
         const a = this.A
         const b = this.Memory.read(info.address)
-        const c = this.C
-        this.A = a + b + c
+        const c = byte(this.C)
+        this.A = byte(a + b + c)
         this.setZN(this.A)
         if (int(a) + int(b) + int(c) > 0xFF) {
             this.C = 1
         } else {
             this.C = 0
         }
-        if ((a ^ b) & 0x80 == 0 && (a ^ this.A) & 0x80 != 0) {
+        if ((((a ^ b) & 0x80) == 0) && (((a ^ this.A) & 0x80) != 0)) {
             this.V = 1
         } else {
             this.V = 0
@@ -518,14 +605,14 @@ module.exports.CPU = class CPU {
 
     // ASL - Arithmetic Shift Left
     asl(info) {
-        if (info.mode == modeAccumulator) {
+        if (info.mode == this.modeAccumulator) {
             this.C = (this.A >> 7) & 1
-            this.A <<= 1
+            this.A = byte(byte(this.A) << 1)
             this.setZN(this.A)
         } else {
-            const value = this.Memory.read(info.address)
-            this.C = (value >> 7) & 1
-            value <<= 1
+            let value = this.Memory.read(info.address)
+            this.C = (byte(value) >> 7) & 1
+            value = byte(value << 1)
             this.Memory.write(info.address, value)
             this.setZN(value)
         }
@@ -686,13 +773,13 @@ module.exports.CPU = class CPU {
 
     // INX - Increment X Register
     inx(info) {
-        this.X++
+        this.X = byte(this.X + 1)
         this.setZN(this.X)
     }
 
     // INY - Increment Y Register
     iny(info) {
-        this.Y++
+        this.Y = byte(this.Y + 1)
         this.setZN(this.Y)
     }
 
@@ -709,8 +796,9 @@ module.exports.CPU = class CPU {
 
     // LDA - Load Accumulator
     lda(info) {
-        this.A = byte(this.Memory.read(info.address))
-        console.log("A:", this.A)
+        this.A = this.Memory.read(info.address)
+        console.log("A:", this.A, byte(this.A))
+        this.A = byte(this.A)
         this.setZN(this.A)
         console.log(":?:", this.N)
     }
@@ -734,7 +822,7 @@ module.exports.CPU = class CPU {
             this.A >>= 1
             this.setZN(this.A)
         } else {
-            const value = this.Memory.read(info.address)
+            let value = this.Memory.read(info.address)
             this.C = value & 1
             value >>= 1
             this.Memory.write(info.address, value)
@@ -777,14 +865,14 @@ module.exports.CPU = class CPU {
     rol(info) {
         if (info.mode == this.modeAccumulator) {
             const c = this.C
-            this.C = (this.A >> 7) & 1
-            this.A = (this.A << 1) | c
+            this.C = byte(byte(this.A) >> 7) & 1
+            this.A = byte(byte(this.A) << 1) | c
             this.setZN(this.A)
         } else {
             const c = this.C
             let value = this.Memory.read(info.address)
-            this.C = (value >> 7) & 1
-            value = (value << 1) | c
+            this.C = byte(byte(value) >> 7) & 1
+            value = byte(byte(value) << 1) | c
             this.Memory.write(info.address, value)
             this.setZN(value)
         }
@@ -794,14 +882,14 @@ module.exports.CPU = class CPU {
     ror(info) {
         if (info.mode == this.modeAccumulator) {
             const c = this.C
-            this.C = this.A & 1
-            this.A = (this.A >> 1) | (c << 7)
+            this.C = byte(this.A) & 1
+            this.A = byte(byte(this.A) >> 1) | byte(byte(c) << 7)
             this.setZN(this.A)
         } else {
             const c = this.C
             let value = this.Memory.read(info.address)
             this.C = value & 1
-            value = (value >> 1) | (c << 7)
+            value = byte(value >> 1) | byte(c << 7)
             this.Memory.write(info.address, value)
             this.setZN(value)
         }
@@ -809,7 +897,7 @@ module.exports.CPU = class CPU {
 
     // RTI - Return from Interrupt
     rti(info) {
-        this.setFlags(this.pull() & 0xEF | 0x20)
+        this.SetFlags(this.pull() & 0xEF | 0x20)
         this.PC = this.pull16()
     }
 
@@ -830,7 +918,7 @@ module.exports.CPU = class CPU {
         } else {
             this.C = 0
         }
-        if ((a ^ b) & 0x80 != 0 && (a ^ this.A) & 0x80 != 0) {
+        if ((((a ^ b) & 0x80) != 0) && (((a ^ this.A) & 0x80) != 0)) {
             this.V = 1
         } else {
             this.V = 0

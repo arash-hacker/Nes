@@ -17,11 +17,11 @@ module.exports.PPU = class PPU {
         this.oamData = Array(256).fill(0x00)
 
         // PPU registers
-        this.v = uint16(0) // current vram address (15 bit)
-        this.t = uint16(0) // temporary vram address (15 bit)
-        this.x = byte(0)   // fine x scroll (3 bit)
-        this.w = byte(0)   // write toggle (1 bit)
-        this.f = byte(0)   // even/odd frame flag (1 bit)
+        this._v = uint16(0) // current vram address (15 bit)
+        this._t = uint16(0) // temporary vram address (15 bit)
+        this._x = byte(0)   // fine x scroll (3 bit)
+        this._w = byte(0)   // write toggle (1 bit)
+        this._f = byte(0)   // even/odd frame flag (1 bit)
 
         this.register = byte(0)
 
@@ -82,6 +82,45 @@ module.exports.PPU = class PPU {
         this.Reset()
         return this
     }
+    // this.t = uint16(0) // temporary vram address (15 bit)
+    // this.x = byte(0)   // fine x scroll (3 bit)
+    // this.w = byte(0)   // write toggle (1 bit)
+    // this.f = byte(0)   // even/odd frame flag (1 bit)
+    get v() {
+        return uint16(this._v);
+    }
+    set v(v) {
+        this._v = uint16(v)
+    }
+
+    get w() {
+        return byte(this._w);
+    }
+    set w(v) {
+        this._w = byte(v)
+    }
+
+    get f() {
+        return byte(this._f);
+    }
+    set f(v) {
+        this._f = byte(v)
+    }
+
+    get t() {
+        return uint16(this._t);
+    }
+    set t(v) {
+        this._t = uint16(v)
+    }
+
+    get x() {
+        return byte(this._x);
+    }
+    set x(v) {
+        this._x = byte(v)
+    }
+
 
 
     async Reset() {
@@ -104,7 +143,7 @@ module.exports.PPU = class PPU {
     }
 
     writePalette(adr, val) {
-        const address = uint16(adr)
+        let address = uint16(adr)
         const value = byte(val)
         if (address >= 16 && address % 4 == 0) {
             address -= 16
@@ -129,6 +168,8 @@ module.exports.PPU = class PPU {
         const address = uint16(adr)
         const value = byte(val)
         this.register = value
+        console.log(":dma:", address, this.register)
+        //:dma: 16404 2
         switch (address) {
             case 0x2000:
                 this.writeControl(value)
@@ -253,26 +294,34 @@ module.exports.PPU = class PPU {
             // w:                   = 0
             this.t = (this.t & 0xFF00) | uint16(value)
             this.v = this.t
+            console.log(":v:1", this.v)
             this.w = 0
         }
     }
 
     // $2007: PPUDATA (read)
     readData() {
-        const value = this.Read(this.v)
+        console.log("PPUDATA 1", this.v)
+        const value = this.Memory.read(this.v)
         // emulate buffered reads
         if (this.v % 0x4000 < 0x3F00) {
             const buffered = this.bufferedData
             this.bufferedData = value
             value = buffered
         } else {
-            this.bufferedData = this.Read(this.v - 0x1000)
+            console.log("PPUDATA 2", this.v - 0x1000)
+
+            this.bufferedData = this.Memory.read(this.v - 0x1000)
         }
         // increment address
         if (this.flagIncrement == 0) {
+
             this.v += 1
+            console.log(":v:2", this.v)
         } else {
             this.v += 32
+            console.log(":v:3", this.v)
+
         }
         return byte(value)
     }
@@ -282,17 +331,24 @@ module.exports.PPU = class PPU {
         this.Memory.write(this.v, byte(value))
         if (this.flagIncrement == 0) {
             this.v += 1
+            console.log(":v:4", this.v)
+
         } else {
             this.v += 32
+            console.log(":v:5", this.v)
+
         }
     }
 
     // $4014: OAMDMA
     writeDMA(value) {
+        console.log(":writeDMA:")
         const cpu = this.console.CPU
         let address = uint16(value) << 8
         for (let i = 0; i < 256; i++) {
-            this.oamData[this.oamAddress] = cpu.read(address)
+            console.log("OAMDMA", address)
+
+            this.oamData[this.oamAddress] = cpu.Memory.read(address)
             this.oamAddress++
             address++
         }
@@ -307,14 +363,19 @@ module.exports.PPU = class PPU {
     incrementX() {
         // increment hori(v)
         // if coarse X == 31
+        console.log(":v:67", this.v, this.v & 0x001F)
         if (this.v & 0x001F == 31) {
             // coarse X = 0
             this.v &= 0xFFE0
             // switch horizontal nametable
             this.v ^= 0x0400
+            console.log(":v:6", this.v)
+
         } else {
             // increment coarse X
             this.v++
+            console.log(":v:7", this.v)
+
         }
     }
 
@@ -324,9 +385,13 @@ module.exports.PPU = class PPU {
         if (this.v & 0x7000 != 0x7000) {
             // increment fine Y
             this.v += 0x1000
+            console.log(":v:8", this.v)
+
         } else {
             // fine Y = 0
             this.v &= 0x8FFF
+            console.log(":v:9", this.v)
+
             // let y = coarse Y
             let y = (this.v & 0x03E0) >> 5
             if (y == 29) {
@@ -334,6 +399,8 @@ module.exports.PPU = class PPU {
                 y = 0
                 // switch vertical nametable
                 this.v ^= 0x0800
+                console.log(":v:10", this.v)
+
             } else if (y == 31) {
                 // coarse Y = 0, nametable not switched
                 y = 0
@@ -343,6 +410,8 @@ module.exports.PPU = class PPU {
             }
             // put coarse Y back into v
             this.v = (this.v & 0xFC1F) | (y << 5)
+            console.log(":v:11", this.v)
+
         }
     }
 
@@ -350,6 +419,8 @@ module.exports.PPU = class PPU {
         // hori(v) = hori(t)
         // v: .....F.. ...EDCBA = t: .....F.. ...EDCBA
         this.v = (this.v & 0xFBE0) | (this.t & 0x041F)
+        console.log(":v:12", this.v)
+
     }
 
     copyY() {
@@ -383,15 +454,19 @@ module.exports.PPU = class PPU {
 
     fetchNameTableByte() {
         const v = this.v
-        const address = 0x2000 | (v & 0x0FFF)
-        this.nameTableByte = this.Read(address)
+        const address = 0x2000 | (uint16(v) & 0x0FFF)
+        console.log("fetchNameTableByte", this.v, address)
+
+        this.nameTableByte = this.Memory.read(address)
     }
 
     fetchAttributeTableByte() {
-        const v = this.v
+        const v = uint16(this.v)
         const address = 0x23C0 | (v & 0x0C00) | ((v >> 4) & 0x38) | ((v >> 2) & 0x07)
         const shift = ((v >> 4) & 4) | (v & 2)
-        this.attributeTableByte = ((this.Read(address) >> shift) & 3) << 2
+        console.log("fetchAttributeTableByte", address)
+
+        this.attributeTableByte = ((this.Memory.read(address) >> shift) & 3) << 2
     }
 
     fetchLowTileByte() {
@@ -399,7 +474,8 @@ module.exports.PPU = class PPU {
         const table = this.flagBackgroundTable
         const tile = this.nameTableByte
         const address = 0x1000 * uint16(table) + uint16(tile) * 16 + fineY
-        this.lowTileByte = this.Read(address)
+        console.log("fetchLowTileByte", address)
+        this.lowTileByte = this.Memory.read(address)
     }
 
     fetchHighTileByte() {
@@ -407,7 +483,8 @@ module.exports.PPU = class PPU {
         const table = this.flagBackgroundTable
         const tile = this.nameTableByte
         const address = 0x1000 * uint16(table) + uint16(tile) * 16 + fineY
-        this.highTileByte = this.Read(address + 8)
+        console.log("fetchHighTileByte", address)
+        this.highTileByte = this.Memory.read(address + 8)
     }
 
     storeTileData() {
@@ -487,8 +564,8 @@ module.exports.PPU = class PPU {
         }
         const c = Palette[this.readPalette(uint16(color)) % 64]
         this.back.setPixelColor(c, x, y)
-        this.console.log(":paint:", x, y, c)
-        this.back.write("./ppu-out/" + (++ppuCounter).toString(10).padStart(5) + ".png")
+        console.info("first rgba", x, y, c)
+        // this.back.write("./ppu-out/" + (++ppuCounter).toString(10).padStart(5) + ".png")
         process.exit(0)
         //this.back.SetRGBA(x, y, c) // <<<<<<<<<<<<<
     }
@@ -516,8 +593,9 @@ module.exports.PPU = class PPU {
             address = 0x1000 * uint16(table) + uint16(tile) * 16 + uint16(row)
         }
         let a = (attributes & 3) << 2
-        let lowTileByte = this.Read(address)
-        let highTileByte = this.Read(address + 8)
+        console.log("fetchSpritePattern", address)
+        let lowTileByte = this.Memory.read(address)
+        let highTileByte = this.Memory.read(address + 8)
         let data = uint32(0)
         for (let i = 0; i < 8; i++) {
             let p1 = byte(0)
@@ -605,12 +683,16 @@ module.exports.PPU = class PPU {
         this.tick()
 
         let renderingEnabled = this.flagShowBackground != 0 || this.flagShowSprites != 0
+        if (renderingEnabled) {
+            // console.info("renderingEnabled")
+            // process.exit(1)
+        }
         let preLine = this.ScanLine == 261
         let visibleLine = this.ScanLine < 240
         //postLine :=  this.ScanLine == 240
         let renderLine = preLine || visibleLine
         let preFetchCycle = this.Cycle >= 321 && this.Cycle <= 336
-        console.log(":ppt:", this.Cycle)
+        console.log(":ppu-cc:", this.Cycle)
         let visibleCycle = this.Cycle >= 1 && this.Cycle <= 256
         let fetchCycle = preFetchCycle || visibleCycle
 
@@ -621,6 +703,7 @@ module.exports.PPU = class PPU {
                 this.renderPixel()
             }
             if (renderLine && fetchCycle) {
+                console.log("wtfxv", this.w, this.t, this.f, this.x, this.v)
                 this.tileData <<= 4
                 switch (this.Cycle % 8) {
                     case 1:

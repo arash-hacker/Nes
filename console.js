@@ -22,6 +22,7 @@ module.exports.Console = class Console {
         console.log(":ppuCycles:", cpuCycles, ppuCycles)
         for (let i = 0; i < ppuCycles; i++) {
             this.PPU.step()
+            console.log("-----")
             this.Mapper.step()
         }
         // for (let i = 0; i < cpuCycles; i++) {

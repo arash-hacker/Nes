@@ -387,6 +387,7 @@ module.exports.CPU = class CPU {
         }
 
         const cycles = this.Cycles
+        console.log(":cyc-cyc:", this.Cycles)
 
         switch (this.interrupt) {
             case this.interruptNMI:
@@ -455,7 +456,9 @@ module.exports.CPU = class CPU {
         console.log("111", this.PC, mode, opcode, address)
 
         this.PC += uint16(instructionSizes[opcode])
-        this.Cycles += uint64(instructionCycles[opcode])
+        this.Cycles = uint64(this.Cycles + uint64(instructionCycles[opcode]))
+        console.log(":zz:", this.Cycles, uint64(instructionCycles[opcode]))
+
         if (pageCrossed) {
             this.Cycles += uint64(instructionPageCycles[opcode])
         }
@@ -466,7 +469,7 @@ module.exports.CPU = class CPU {
         this.table[opcode](info)
         console.log("444", this.PC, this.SP, this.A, this.X, this.Y, this.C, this.Z, this.I, this.D, this.B, this.U, this.V, this.N)
         console.log("555", this.PC, "&{", info.address, info.pc, info.mode, "}", instructionNames[opcode])
-
+        console.log(":cyc:", this.Cycles, cycles)
         return int(this.Cycles - cycles)
     }
 

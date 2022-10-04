@@ -19,6 +19,7 @@ module.exports.Console = class Console {
     step() {
         const cpuCycles = this.CPU.step()
         const ppuCycles = cpuCycles * 3
+        console.log(":ppuCycles:", cpuCycles, ppuCycles)
         for (let i = 0; i < ppuCycles; i++) {
             this.PPU.step()
             this.Mapper.step()

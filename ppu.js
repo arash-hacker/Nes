@@ -7,8 +7,8 @@ module.exports.PPU = class PPU {
     constructor(console) {
         this.console = console // reference to parent object
 
-        this.Cycle = 0     // 0-340
-        this.ScanLine = 0    // 0-261, 0-239=visible, 240=post, 241-260=vblank, 261=pre
+        this.Cycle = 340     // 0-340
+        this.ScanLine = 240    // 0-261, 0-239=visible, 240=post, 241-260=vblank, 261=pre
         this.Frame = uint64(0) // frame counter
 
         // storage variables
@@ -487,7 +487,9 @@ module.exports.PPU = class PPU {
         }
         const c = Palette[this.readPalette(uint16(color)) % 64]
         this.back.setPixelColor(c, x, y)
-        this.back.write(__dirname + "./ppu-out/" + (++ppuCounter).toString(10).padStart(5) + ".png")
+        this.console.log(":paint:", x, y, c)
+        this.back.write("./ppu-out/" + (++ppuCounter).toString(10).padStart(5) + ".png")
+        process.exit(0)
         //this.back.SetRGBA(x, y, c) // <<<<<<<<<<<<<
     }
 
@@ -608,9 +610,11 @@ module.exports.PPU = class PPU {
         //postLine :=  this.ScanLine == 240
         let renderLine = preLine || visibleLine
         let preFetchCycle = this.Cycle >= 321 && this.Cycle <= 336
+        console.log(":ppt:", this.Cycle)
         let visibleCycle = this.Cycle >= 1 && this.Cycle <= 256
         let fetchCycle = preFetchCycle || visibleCycle
 
+        console.log(":ppu:", renderingEnabled, preLine, visibleLine, renderLine, preFetchCycle, visibleCycle, fetchCycle)
         // background logic
         if (renderingEnabled) {
             if (visibleLine && visibleCycle) {

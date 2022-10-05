@@ -30,8 +30,6 @@ module.exports.Image = class Image {
             fs.mkdirSync(pth)
         }
         if ((i % OFFSET) == 0) {
-            console.info("image output" + i)
-
             fs.writeFileSync(pth + "/" + (i).toString().padStart(16, "0") + ".png", this.canvas.toBuffer("image/png"));
         }
         ++i

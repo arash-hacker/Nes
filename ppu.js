@@ -565,7 +565,6 @@ module.exports.PPU = class PPU {
         }
         const c = Palette[this.readPalette(uint16(color)) % 64]
         this.back.setPixelColor(x, y, c)
-        // this.back.saveAsPng("./ppu-out") // save output as png picture
     }
 
     fetchSpritePattern(i, row) {

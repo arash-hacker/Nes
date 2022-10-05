@@ -2,8 +2,8 @@ var fs = require('fs');
 var path = require('path');
 const { CPUMemory } = require('./mamory');
 const { byte, int, uint16, uint64 } = require('./utils');
-Number.prototype.x = function () {
-    return this.toString(16).padStart(4, '0')
+Number.prototype.x = function (n = 4) {
+    return this.toString(16).padStart(n, '0')
 }
 module.exports.CPUFrequency = 1789773
 module.exports.StepInfo = class StepInfo {

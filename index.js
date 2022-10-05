@@ -1,15 +1,16 @@
+
+console.log = function () { }
+console.info = function () { }
 const { Console } = require("./console");
 
 let c = new Console()
-console.log = function () { }
 if (c.Cart.battery != 0) {
     // TODO
-    console.info("battery")
     process.exit(1)
     // cartridge.SRAM = readSRAM(sramPath(view.hash))
 }
-let i = 0;
-while (100) {
+while (true) {
     c.step()
-    i++
+    // c.Buffer() // get picture of ppu and put in output stream(opengl/ canvas/ web/ terminal/ ...)
+    c.saveAsPng("./ppu-out")
 }

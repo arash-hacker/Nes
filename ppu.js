@@ -533,7 +533,7 @@ module.exports.PPU = class PPU {
     }
 
     async renderPixel() {
-        console.info("renderPixel")
+        console.log("renderPixel")
         let x = this.Cycle - 1
         let y = this.ScanLine
         let background = this.backgroundPixel()
@@ -564,10 +564,8 @@ module.exports.PPU = class PPU {
             }
         }
         const c = Palette[this.readPalette(uint16(color)) % 64]
-        this.back.setPixelColor(c, x, y)
-        console.info("second rgba", x, y, c)
-        // this.back.write("./ppu-out/" + (++ppuCounter).toString(10).padStart(5) + ".png")
-        process.exit(1)
+        this.back.setPixelColor(x, y, c)
+        // this.back.saveAsPng("./ppu-out") // save output as png picture
     }
 
     fetchSpritePattern(i, row) {

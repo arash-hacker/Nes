@@ -9,3 +9,9 @@ Links to research
 [Slides to quick understand of NES](https://slides.com/andsve/writing-a-nes-emulator#/85)      
 [original NESDev.org](https://www.nesdev.org/NESDoc.pdf)      
 [roms to test](https://wowroms.com/en/all-roms/list/consoles)     
+
+
+## Samples    
+![pic1](./ppu-samples/1.png)
+![pic2](./ppu-samples/2.png)
+![pic3](./ppu-samples/3.png)

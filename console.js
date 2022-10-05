@@ -46,7 +46,10 @@ module.exports.Console = class Console {
         }
     }
     Buffer() {
-        return this.PPU.front
+        return this.PPU.front.toBuffer()
+    }
+    saveAsPng(pth) {
+        this.PPU.front.saveAsPng(pth)
     }
 
     BackgroundColor() {

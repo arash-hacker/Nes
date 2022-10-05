@@ -82,47 +82,36 @@ module.exports.PPU = class PPU {
         this.Reset()
         return this
     }
-    // this.t = uint16(0) // temporary vram address (15 bit)
-    // this.x = byte(0)   // fine x scroll (3 bit)
-    // this.w = byte(0)   // write toggle (1 bit)
-    // this.f = byte(0)   // even/odd frame flag (1 bit)
     get v() {
         return uint16(this._v);
     }
     set v(v) {
         this._v = uint16(v)
     }
-
     get w() {
         return byte(this._w);
     }
     set w(v) {
         this._w = byte(v)
     }
-
     get f() {
         return byte(this._f);
     }
     set f(v) {
         this._f = byte(v)
     }
-
     get t() {
         return uint16(this._t);
     }
     set t(v) {
         this._t = uint16(v)
     }
-
     get x() {
         return byte(this._x);
     }
     set x(v) {
         this._x = byte(v)
     }
-
-
-
     async Reset() {
         this.Cycle = 340
         this.ScanLine = 240

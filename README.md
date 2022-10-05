@@ -10,6 +10,14 @@ Links to research
 [original NESDev.org](https://www.nesdev.org/NESDoc.pdf)      
 [roms to test](https://wowroms.com/en/all-roms/list/consoles)     
 
+- [x] CPU
+- [x] PPU
+- [x] Console
+- [x] Timing
+- [x] Rendering
+- [ ] APU
+- [ ] Controller
+
 
 ## Samples    
 ![pic1](./ppu-samples/1.png)

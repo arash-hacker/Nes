@@ -1,7 +1,7 @@
 const fs = require("fs")
 const { createCanvas } = require("canvas")
 let i = 0
-const OFFSET = 10_000
+const OFFSET = 1_000
 module.exports.Image = class Image {
     constructor(w, h) {
         this.width = w

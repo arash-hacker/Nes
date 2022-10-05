@@ -58,7 +58,7 @@ module.exports.Console = class Console {
         // 0.004066916000000198 7278
         // 0.002199045999999427 3935
         // 0.014117834000000329 25267
-        console.info("seconds", seconds, cycles)
+        // console.info("seconds", seconds, cycles)
         while (cycles > 0) {
             cycles -= this.step()
         }

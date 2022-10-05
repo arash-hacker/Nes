@@ -302,7 +302,7 @@ module.exports.PPU = class PPU {
     // $2007: PPUDATA (read)
     readData() {
         console.log("PPUDATA 1", this.v)
-        const value = this.Memory.read(this.v)
+        let value = this.Memory.read(this.v)
         // emulate buffered reads
         if (this.v % 0x4000 < 0x3F00) {
             const buffered = this.bufferedData

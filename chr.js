@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require('path');
-var rom = fs.readFileSync(path.join(__dirname, "./rom/mario.nes"));
+var rom = fs.readFileSync(path.join(__dirname, "./rom/dk.nes"));
 let CHR = []
 
 function createCHR(rom, CHR) {

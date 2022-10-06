@@ -7,7 +7,7 @@ const { Console } = require("./console");
 //     process.exit(1)
 //     // cartridge.SRAM = readSRAM(sramPath(view.hash))
 // }
-let c = new Console()
+let c = new Console(process.argv[2])
 let deltaMiliSeconds = 0
 let lastTimeStampMilisecond = new Date().getTime()
 while (true) {

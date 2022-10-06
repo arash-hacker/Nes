@@ -1,8 +1,8 @@
 var fs = require('fs');
 var path = require('path');
-var rom = fs.readFileSync(path.join(__dirname, "./rom/dk.nes"));
+var rom = fs.readFileSync(path.join(__dirname, "./rom/mario.nes"));
 let CHR = []
-console.log(rom)
+// console.log(rom)
 function createCHR(rom, CHR) {
     const Z = 16 + (16384 * rom[4])
     let i = 0
@@ -37,6 +37,33 @@ function printCHR(rom, CHR) {
     }
 
 }
+
+function printCHR2(rom, CHR) {
+    for (let k = 0; k < CHR.length; k = k + 16 * 8) {
+        for (let j = 0; j < 8; j++) {
+            process.stdout.write(CHR[k + j + 00 * 8] + "  ");
+            process.stdout.write(CHR[k + j + 01 * 8] + "  ");
+            process.stdout.write(CHR[k + j + 02 * 8] + "  ");
+            process.stdout.write(CHR[k + j + 03 * 8] + "  ");
+            process.stdout.write(CHR[k + j + 04 * 8] + "  ");
+            process.stdout.write(CHR[k + j + 05 * 8] + "  ");
+            process.stdout.write(CHR[k + j + 06 * 8] + "  ");
+            process.stdout.write(CHR[k + j + 07 * 8] + "  ");
+            process.stdout.write(CHR[k + j + 08 * 8] + "  ");
+            process.stdout.write(CHR[k + j + 09 * 8] + "  ");
+            process.stdout.write(CHR[k + j + 10 * 8] + "  ");
+            process.stdout.write(CHR[k + j + 11 * 8] + "  ");
+            process.stdout.write(CHR[k + j + 12 * 8] + "  ");
+            process.stdout.write(CHR[k + j + 13 * 8] + "  ");
+            process.stdout.write(CHR[k + j + 14 * 8] + "  ");
+            process.stdout.write(CHR[k + j + 15 * 8] + "  ");
+            console.log()
+        }
+        console.log()
+    }
+}
+
+
 function check() {
     const rom = fs.readFileSync(path.join(__dirname, "./rom/dk.nes"));
     const nesHeader = (rom[0] << 24 + rom[1] << 16 + rom[2] << 8 + rom[3]) & 0xffffffff;
@@ -76,4 +103,5 @@ function check() {
     return rom
 }
 // check()
-printCHR(rom, CHR)
+// printCHR(rom, CHR)
+printCHR2(rom, CHR)

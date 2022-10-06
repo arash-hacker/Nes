@@ -4,8 +4,8 @@ const { PPU } = require("./ppu");
 const { int } = require("./utils");
 
 module.exports.Console = class Console {
-    constructor() {
-        this.Cart = new Cart()
+    constructor(pth) {
+        this.Cart = new Cart(pth)
         this.Mapper = this.Cart.createMapper()
         this.CPU = new CPU(this);
         this.PPU = new PPU(this);
